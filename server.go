@@ -41,9 +41,11 @@ func connectWebHook() <-chan tgbotapi.Update {
 		log.Fatal(err)
 	}
 
+	log.Printf("[server] Setting up a webhook on port %s", os.Getenv("PORT"))
+
 	updatesC = Bot.ListenForWebhook("/" + Bot.Token)
 
-	go http.ListenAndServe("0.0.0.0:"+os.Getenv("PORT"), nil)
+	go http.ListenAndServe(":"+os.Getenv("PORT"), nil)
 
 	return updatesC
 }
