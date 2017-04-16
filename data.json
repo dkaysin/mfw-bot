@@ -1,0 +1,18 @@
+{
+	"Stories": [
+		{
+			"Text": [
+				"I am an lazy sloth eating a leaf",
+				"I am Donald Trump with major hangover"
+			],
+			"Freq": 2
+		},
+		{
+			"Text": [
+				"I am Yuri Gagarin during rocket launch",
+				"I am being violently dragged out of United Airlines flight"
+			],
+			"Freq": 2
+		}
+	]
+}
