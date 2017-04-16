@@ -2,7 +2,7 @@
 	"Stories": [
 		{
 			"Text": [
-				"I am an lazy sloth eating a leaf",
+				"I am a lazy sloth eating a leaf",
 				"I am Donald Trump with major hangover"
 
 			],
@@ -11,9 +11,9 @@
 		{
 			"Text": [
 				"I am Yuri Gagarin during rocket launch",
-				"I am being violently dragged out of United Airlines flight"
+				"I am being violently dragged out of a United Airlines flight"
 			],
-			"Freq": 0
+			"Freq": 1
 		}
 	]
 }
