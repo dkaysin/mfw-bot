@@ -11,6 +11,7 @@ import (
 
 const (
 	MIN_PHOTO_SIZE  = 1000 // in pixels
+	EXT_PORT = "443"
 )
 
 func API_KEY() string {
@@ -36,9 +37,9 @@ func connectWebHook() <-chan tgbotapi.Update {
 
 	log.Printf("[server] Authorized on account %s", Bot.Self.UserName)
 
-	log.Printf("[server] Setting up a webhook on port %s", os.Getenv("PORT"))
+	log.Printf("[server] Setting up a webhook on port %v->%s", EXT_PORT, os.Getenv("PORT"))
 
-	_, err := Bot.SetWebhook(tgbotapi.NewWebhook("https://mfw-bot.herokuapp.com:443"+"/"+Bot.Token))
+	_, err := Bot.SetWebhook(tgbotapi.NewWebhook("https://mfw-bot.herokuapp.com:"+EXT_PORT+"/"+Bot.Token))
 	if err != nil {
 		log.Fatal(err)
 	}
