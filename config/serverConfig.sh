@@ -8,6 +8,6 @@ source "$DIR/apiKeys.sh"
 
 printf "Setting Heroku ENV vars...\n"
 
-heroku config:set MFWBOT_API_KEY=$MFWBOT_API_KEY --app $APP
+heroku config:set MFWBOT_API_KEY=$MFWBOT_API_KEY --app "mfw-bot"
 
 printf "\n"
