@@ -10,8 +10,8 @@ import (
 )
 
 const (
-	DELAY_TEXT           = 2 * time.Second
-	DELAY_PHOTO          = 30 * time.Second
+	DELAY_TEXT           = 1 * time.Second
+	DELAY_PHOTO          = 20 * time.Second
 	DELAY_LAST_VOTES_SEC = 10 // in seconds
 	DELAY_LAST_VOTES     = DELAY_LAST_VOTES_SEC * time.Second
 )
@@ -215,6 +215,7 @@ func brawlActor(chat *Chat, c chan *Action) {
 							)
 
 							timer1.Reset(DELAY_PHOTO)
+							timer2.Stop()
 						}
 					}
 				}
