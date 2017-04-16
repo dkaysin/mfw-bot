@@ -2,9 +2,9 @@
  
 # Set Heroku app id
 DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
-source "$DIR/apiKeys.sh"
 
-# source config/apiKeys.sh
+source "$DIR/apiKeys.sh" # Imports MFWBOT_API_KEY variable (string)
+printf "API key: %s \n" $MFWBOT_API_KEY
 
 printf "Setting Heroku ENV vars...\n"
 

@@ -11,8 +11,8 @@ import (
 
 const (
 	DELAY_TEXT           = 2 * time.Second
-	DELAY_PHOTO          = 15 * time.Second
-	DELAY_LAST_VOTES_SEC = 5 // in seconds
+	DELAY_PHOTO          = 30 * time.Second
+	DELAY_LAST_VOTES_SEC = 10 // in seconds
 	DELAY_LAST_VOTES     = DELAY_LAST_VOTES_SEC * time.Second
 )
 

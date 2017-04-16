@@ -1,1 +1,1 @@
-web: mfw-bot
+mfw-bot
