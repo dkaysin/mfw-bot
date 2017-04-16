@@ -104,6 +104,12 @@ func getChat(chatID int64) *Chat {
 	return chat
 }
 
+
+func parseCommandFromMsg(from int, length int, text string) string {
+	to := from + length
+	return text[from+1 : to]
+}
+
 func handleMessage(msg *tgbotapi.Message) {
 
 	log.Printf("[%s] Message received: %s", msg.From.UserName, msg.Text)
