@@ -6,6 +6,7 @@ import (
 	"math/rand"
 	"time"
 	"os"
+	"net/http"
 )
 
 const (
@@ -35,23 +36,14 @@ func connectWebHook() <-chan tgbotapi.Update {
 
 	log.Printf("[server] Authorized on account %s", Bot.Self.UserName)
 
-	_, err = bot.SetWebhook(tgbotapi.NewWebhookWithCert("https://mfw-bot.herokuapp.com:/"+os.Getenv("PORT")+bot.Token, "cert.pem"))
+	_, err := Bot.SetWebhook(tgbotapi.NewWebhook("https://mfw-bot.herokuapp.com:/"+os.Getenv("PORT")+Bot.Token))
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	for {
-		u, err := Bot.ListenForWebhook("/" + Bot.Token)
-		if err != nil {
-			log.Println("[server] Unable to set updates handle. Reconnecting after timeout...")
-			time.Sleep(5 * time.Second)
-		} else {
-			updatesC = u
-			break
-		}
-	}
+	updatesC = Bot.ListenForWebhook("/" + Bot.Token)
 
-	go http.ListenAndServeTLS("0.0.0.0:"+os.Getenv("PORT"), "cert.pem", "key.pem", nil)
+	go http.ListenAndServe("0.0.0.0:"+os.Getenv("PORT"), nil)
 
 	return updatesC
 }
