@@ -18,6 +18,8 @@ func API_KEY() string {
 
 func connect() <-chan tgbotapi.Update {
 
+	log.Printf("Using API key: %v", API_KEY())
+
 	var updatesC <-chan tgbotapi.Update
 
 	for {
