@@ -36,7 +36,7 @@ func connectWebHook() <-chan tgbotapi.Update {
 
 	log.Printf("[server] Authorized on account %s", Bot.Self.UserName)
 
-	_, err := Bot.SetWebhook(tgbotapi.NewWebhook("https://mfw-bot.herokuapp.com:/"+os.Getenv("PORT")+Bot.Token))
+	_, err := Bot.SetWebhook(tgbotapi.NewWebhook("https://mfw-bot.herokuapp.com:"+os.Getenv("PORT")+"/"+Bot.Token))
 	if err != nil {
 		log.Fatal(err)
 	}
