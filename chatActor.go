@@ -144,7 +144,11 @@ func mapActionChat(action *Action, chat *Chat) map[string]func() {
 							log.Printf("[bot] Wait for brawl to finish")
 						}
 					} else {
-						Bot.Send(GetTxtMsg(chat.Id, fmt.Sprintf("We need another volunteer. %v, in fact", d-1)))
+						if d-1 == 1 {
+							Bot.Send(GetTxtMsg(chat.Id, fmt.Sprintf("We need another volunteer")))
+						} else {
+							Bot.Send(GetTxtMsg(chat.Id, fmt.Sprintf("We need another volunteer. %v, in fact", d-1)))
+						}
 						time.Sleep(DELAY_TEXT)
 						log.Printf("[bot] %v more fighter(s) required", d-1)
 					}
