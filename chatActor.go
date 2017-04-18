@@ -8,14 +8,6 @@ import (
 	"gopkg.in/telegram-bot-api.v4"
 )
 
-const (
-	CHAT_TIMEOUT       = 100 * time.Second
-	RECENT_TEXT_MEMORY = 3
-	MAX_BRAWL_USERS    = 4
-	MIN_BRAWL_USERS    = 1
-	COEFF_BRAWL_USERS  = 0.2
-)
-
 func chatActor(chat *Chat, c chan *Action) {
 
 	defer log.Printf("[server] Exiting chatActor goroutine for chat %v", chat.ID)

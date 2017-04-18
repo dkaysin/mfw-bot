@@ -123,14 +123,6 @@ type User struct {
 	Posted    bool
 }
 
-type TGMessage tgbotapi.Message
-type TGCallback tgbotapi.CallbackQuery
-
-type Actioner interface {
-	GetAction(a *Action, c *Chat)
-	GetChatID() int64
-}
-
 type Action struct {
 	Type     string
 	From     *User

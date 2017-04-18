@@ -1,4 +1,4 @@
 godep save ./...
 git add .
-git commit -m "Add Heroku Connectivity"
+git commit -m "Refactored"
 git push origin master
