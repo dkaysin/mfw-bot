@@ -9,5 +9,6 @@ printf "API key: %s \n" $MFWBOT_API_KEY
 printf "Setting Heroku ENV vars...\n"
 
 heroku config:set MFWBOT_API_KEY=$MFWBOT_API_KEY --app "mfw-bot"
+heroku config:set GET_UPDATE_METHOD="webhook" --app "mfw-bot"
 
 printf "\n"

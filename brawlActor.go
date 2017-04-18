@@ -2,11 +2,12 @@ package main
 
 import (
 	"fmt"
-	"gopkg.in/telegram-bot-api.v4"
 	"log"
 	"math"
 	"math/rand"
 	"time"
+
+	"gopkg.in/telegram-bot-api.v4"
 )
 
 const (
@@ -97,7 +98,6 @@ func GetUpdVoteMarkup(voteResults map[string]int) tgbotapi.InlineKeyboardMarkup 
 	return kb
 }
 
-
 func getVoteResults(votee *User, voteStats *VoteStats) map[string]int {
 	voteResults := make(map[string]int)
 	for pairInList, voteInList := range *voteStats {
@@ -109,8 +109,6 @@ func getVoteResults(votee *User, voteStats *VoteStats) map[string]int {
 	}
 	return voteResults
 }
-
-
 
 func ConfidenceRating(score, maxScore int) float64 {
 
@@ -155,8 +153,8 @@ func brawlActor(chat *Chat, c chan *Action) {
 	)
 
 	storiesWeighted := []*Story{}
-	for _, s := range Dict.Stories{
-		for i:=0; i<s.Freq; i++ {
+	for _, s := range Dict.Stories {
+		for i := 0; i < s.Freq; i++ {
 			storiesWeighted = append(storiesWeighted, s)
 		}
 	}
@@ -233,7 +231,7 @@ func brawlActor(chat *Chat, c chan *Action) {
 						voteStats[pair] = vote
 					}
 
-					voteStats[pair] = &Vote{action.Clb.Data: 1}
+					voteStats[pair] = &Vote{action.ClbData: 1}
 					clbTxt := fmt.Sprintf("You %s-ed %s", VoteMap[action.Clb.Data].Emoji, votee.SprintName())
 
 					voteResults := getVoteResults(votee, &voteStats)
@@ -266,7 +264,7 @@ func brawlActor(chat *Chat, c chan *Action) {
 
 	Bot.Send(GetTxtMsg(chat.Id, "Time is up!"))
 	time.Sleep(DELAY_TEXT)
-	
+
 	voteSummary := make(map[*User]*VoteResult)
 	for pairInList, voteInList := range voteStats {
 		for key, n := range *voteInList {
@@ -326,7 +324,7 @@ func brawlActor(chat *Chat, c chan *Action) {
 		log.Printf("[bot] Winner: %+v", winner)
 	}
 
-	for _, u := range chat.Brawl{
+	for _, u := range chat.Brawl {
 		u.Posted = false
 	}
 	chat.Brawl = UserList{}

@@ -2,9 +2,10 @@ package main
 
 import (
 	"fmt"
-	"gopkg.in/telegram-bot-api.v4"
 	"log"
 	"sync"
+
+	"gopkg.in/telegram-bot-api.v4"
 )
 
 func (ul *UserList) AddUser(u *User) {
@@ -119,23 +120,24 @@ type User struct {
 	Firstname string
 	Lastname  string
 	Username  string
-	Posted bool
+	Posted    bool
 }
 
 type Action struct {
-	Type string
-	Clb  *tgbotapi.CallbackQuery
-	Msg  *tgbotapi.Message
+	Type    string
+	Clb     *tgbotapi.CallbackQuery
+	Msg     *tgbotapi.Message
+	ClbData string
 }
 
 type Chat struct {
 	sync.Mutex
-	Id        int64
-	Users     UserList
-	Queue     UserList
-	Brawl     UserList
-	Listeners []chan *Action
-	RecentTexts []string
+	Id                int64
+	Users             UserList
+	Queue             UserList
+	Brawl             UserList
+	Listeners         []chan *Action
+	RecentTexts       []string
 	MaxBrawlUserCount int
 }
 

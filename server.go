@@ -1,31 +1,32 @@
 package main
 
 import (
-	"gopkg.in/telegram-bot-api.v4"
 	"log"
 	"math/rand"
-	"time"
-	"os"
 	"net/http"
+	"os"
+	"time"
+
+	"gopkg.in/telegram-bot-api.v4"
 )
 
 const (
-	MIN_PHOTO_SIZE  = 1000 // in pixels
-	EXT_PORT = "443"
+	MIN_PHOTO_SIZE = 1000 // in pixels
+	EXT_PORT       = "443"
 )
 
-func API_KEY() string {
+func apiKey() string {
 	return os.Getenv("MFWBOT_API_KEY")
 }
 
 func connectWebHook() <-chan tgbotapi.Update {
 
-	log.Printf("Using API key: %v", API_KEY())
+	log.Printf("Connecting via Webhook using API key: %v", apiKey())
 
 	var updatesC <-chan tgbotapi.Update
 
 	for {
-		b, err := tgbotapi.NewBotAPI(API_KEY())
+		b, err := tgbotapi.NewBotAPI(apiKey())
 		if err != nil {
 			log.Println("[server] No connection. Reconnecting after timeout...")
 			time.Sleep(5 * time.Second)
@@ -39,11 +40,10 @@ func connectWebHook() <-chan tgbotapi.Update {
 
 	log.Printf("[server] Setting up a webhook on port %v->%s", EXT_PORT, os.Getenv("PORT"))
 
-	_, err := Bot.SetWebhook(tgbotapi.NewWebhook("https://mfw-bot.herokuapp.com:"+EXT_PORT+"/"+Bot.Token))
+	_, err := Bot.SetWebhook(tgbotapi.NewWebhook("https://mfw-bot.herokuapp.com:" + EXT_PORT + "/" + Bot.Token))
 	if err != nil {
 		log.Fatal(err)
 	}
-
 
 	updatesC = Bot.ListenForWebhook("/" + Bot.Token)
 
@@ -54,12 +54,12 @@ func connectWebHook() <-chan tgbotapi.Update {
 
 func connectLongPolling() <-chan tgbotapi.Update {
 
-	log.Printf("Using API key: %v", API_KEY())
+	log.Printf("Connecting via Long polling using API key: %v", apiKey())
 
 	var updatesC <-chan tgbotapi.Update
 
 	for {
-		b, err := tgbotapi.NewBotAPI(API_KEY())
+		b, err := tgbotapi.NewBotAPI(apiKey())
 		if err != nil {
 			log.Println("[server] No connection. Reconnecting after timeout...")
 			time.Sleep(5 * time.Second)
@@ -75,6 +75,7 @@ func connectLongPolling() <-chan tgbotapi.Update {
 	updateConfig := tgbotapi.NewUpdate(0)
 	updateConfig.Timeout = 60
 
+	Bot.RemoveWebhook()
 	for {
 		u, err := Bot.GetUpdatesChan(updateConfig)
 		if err != nil {
@@ -103,7 +104,6 @@ func getChat(chatID int64) *Chat {
 	}
 	return chat
 }
-
 
 func parseCommandFromMsg(from int, length int, text string) string {
 	to := from + length
@@ -160,7 +160,8 @@ func handleCallback(clb *tgbotapi.CallbackQuery) {
 	log.Printf("[%s] Callback received: %s", clb.From.UserName, clb.ID)
 
 	action := Action{
-		Clb: clb,
+		Clb:     clb,
+		ClbData: clb.Data,
 	}
 
 	switch clb.Data {
@@ -193,7 +194,12 @@ func main() {
 	rand.Seed(time.Now().Unix())
 	GetData(&Dict)
 
-	updates := connectWebHook()
+	var updates <-chan tgbotapi.Update
+	if os.Getenv("GET_UPDATE_METHOD") == "webhook" {
+		updates = connectWebHook()
+	} else {
+		updates = connectLongPolling()
+	}
 
 	for update := range updates {
 		if msg := update.Message; msg != nil {

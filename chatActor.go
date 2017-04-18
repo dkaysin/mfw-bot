@@ -2,17 +2,18 @@ package main
 
 import (
 	"fmt"
-	"gopkg.in/telegram-bot-api.v4"
 	"log"
 	"time"
+
+	"gopkg.in/telegram-bot-api.v4"
 )
 
 const (
-	CHAT_TIMEOUT = 100 * time.Second
-	RECENT_TEXT_MEMORY   = 3
-	MAX_BRAWL_USERS = 4
-	MIN_BRAWL_USERS = 2
-	COEFF_BRAWL_USERS = 0.2
+	CHAT_TIMEOUT       = 100 * time.Second
+	RECENT_TEXT_MEMORY = 3
+	MAX_BRAWL_USERS    = 4
+	MIN_BRAWL_USERS    = 2
+	COEFF_BRAWL_USERS  = 0.2
 )
 
 func chatActor(chat *Chat, c chan *Action) {
@@ -28,7 +29,7 @@ func chatActor(chat *Chat, c chan *Action) {
 		select {
 		case action := <-c:
 
-			usersCount, _ := Bot.GetChatMembersCount(tgbotapi.ChatConfig{chat.Id,""})
+			usersCount, _ := Bot.GetChatMembersCount(tgbotapi.ChatConfig{chat.Id, ""})
 			chat.MaxBrawlUserCount = MaxInt(
 				MIN_BRAWL_USERS,
 				MinInt(
@@ -161,7 +162,7 @@ func mapActionChat(action *Action, chat *Chat) map[string]func() {
 
 	var actionMap = map[string]func(){
 		"start": start,
-		"help": help,
+		"help":  help,
 		"debug": debug,
 		"data":  data,
 		"quit":  quit,
