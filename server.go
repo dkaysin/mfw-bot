@@ -3,7 +3,6 @@ package main
 import (
 	"log"
 	"math/rand"
-	"net/http"
 	"os"
 	"time"
 
@@ -12,89 +11,23 @@ import (
 
 const (
 	MIN_PHOTO_SIZE = 1000 // in pixels
-	EXT_PORT       = "443"
+	whURL          = "https://mfw-bot.herokuapp.com"
+	whExtPort      = "443"
 )
 
-func apiKey() string {
+var (
+	whIntPort = os.Getenv("PORT")
+)
+
+func APIKey() string {
 	return os.Getenv("MFWBOT_API_KEY")
-}
-
-func connectWebHook() <-chan tgbotapi.Update {
-
-	log.Printf("Connecting via Webhook using API key: %v", apiKey())
-
-	var updatesC <-chan tgbotapi.Update
-
-	for {
-		b, err := tgbotapi.NewBotAPI(apiKey())
-		if err != nil {
-			log.Println("[server] No connection. Reconnecting after timeout...")
-			time.Sleep(5 * time.Second)
-		} else {
-			Bot = b
-			break
-		}
-	}
-
-	log.Printf("[server] Authorized on account %s", Bot.Self.UserName)
-
-	log.Printf("[server] Setting up a webhook on port %v->%s", EXT_PORT, os.Getenv("PORT"))
-
-	_, err := Bot.SetWebhook(tgbotapi.NewWebhook("https://mfw-bot.herokuapp.com:" + EXT_PORT + "/" + Bot.Token))
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	updatesC = Bot.ListenForWebhook("/" + Bot.Token)
-
-	go http.ListenAndServe(":"+os.Getenv("PORT"), nil)
-
-	return updatesC
-}
-
-func connectLongPolling() <-chan tgbotapi.Update {
-
-	log.Printf("Connecting via Long polling using API key: %v", apiKey())
-
-	var updatesC <-chan tgbotapi.Update
-
-	for {
-		b, err := tgbotapi.NewBotAPI(apiKey())
-		if err != nil {
-			log.Println("[server] No connection. Reconnecting after timeout...")
-			time.Sleep(5 * time.Second)
-		} else {
-			Bot = b
-			break
-		}
-	}
-
-	log.Printf("[server] Authorized on account %s", Bot.Self.UserName)
-
-	// Bot.Debug = true
-	updateConfig := tgbotapi.NewUpdate(0)
-	updateConfig.Timeout = 60
-
-	Bot.RemoveWebhook()
-	for {
-		u, err := Bot.GetUpdatesChan(updateConfig)
-		if err != nil {
-			log.Println("[server] Unable to set updates handle. Reconnecting after timeout...")
-			time.Sleep(5 * time.Second)
-		} else {
-			updatesC = u
-			break
-		}
-	}
-
-	return updatesC
 }
 
 func getChat(chatID int64) *Chat {
 	chat, exists := Chats[chatID]
 	if !exists {
 		chat = &Chat{
-			Id:    chatID,
+			ID:    chatID,
 			Users: UserList{},
 			Queue: UserList{},
 			Brawl: UserList{},
@@ -105,38 +38,27 @@ func getChat(chatID int64) *Chat {
 	return chat
 }
 
-func parseCommandFromMsg(from int, length int, text string) string {
-	to := from + length
-	return text[from+1 : to]
-}
-
-func handleMessage(msg *tgbotapi.Message) {
-
-	log.Printf("[%s] Message received: %s", msg.From.UserName, msg.Text)
-
-	action := Action{
-		Msg: msg,
-	}
+func (msg TGMessage) GetAction(a *Action, c *Chat) {
 
 	if entities := msg.Entities; entities != nil {
 		for _, e := range *entities {
 			switch e.Type {
 			case "bot_command":
-				cmd := parseCommandFromMsg(e.Offset, e.Length, msg.Text)
+				f := e.Offset
+				l := e.Length
+				cmd := msg.Text[f+1 : f+l]
 				switch cmd {
 				case "start":
-					action.Type = "start"
+					a.Type = "start"
 				case "debug":
-					action.Type = "debug"
+					a.Type = "debug"
 				case "data":
-					action.Type = "data"
+					a.Type = "data"
 				case "quit":
-					action.Type = "quit"
+					a.Type = "quit"
 				case "fight":
-					action.Type = "fight"
-				default:
+					a.Type = "fight"
 				}
-			default:
 			}
 		}
 	}
@@ -144,43 +66,88 @@ func handleMessage(msg *tgbotapi.Message) {
 	if photos := msg.Photo; photos != nil {
 		for _, p := range *photos {
 			if p.Width*p.Height > MIN_PHOTO_SIZE {
-				action.Type = "photo"
+				a.Type = "photo"
 			}
 		}
 	}
 
-	if action.Type != "" {
-		chat := getChat(msg.Chat.ID)
-		chat.SendToListeners(&action)
+	if a.Type == "" {
+		return
 	}
+
+	a.From = c.GetUser(msg.From)
+	a.Message = &Message{
+		ID:   msg.MessageID,
+		From: c.GetUser(msg.From),
+		Text: msg.Text,
+	}
+
+	log.Printf("[%s] Message received: %s", a.From.Username, a.Message.Text)
+	return
 }
 
-func handleCallback(clb *tgbotapi.CallbackQuery) {
-
-	log.Printf("[%s] Callback received: %s", clb.From.UserName, clb.ID)
-
-	action := Action{
-		Clb:     clb,
-		ClbData: clb.Data,
-	}
+func (clb TGCallback) GetAction(a *Action, c *Chat) {
 
 	switch clb.Data {
 	case "fight":
-		action.Type = "fight"
-		clbCfg := tgbotapi.CallbackConfig{CallbackQueryID: action.Clb.ID}
-		Bot.AnswerCallbackQuery(clbCfg)
+		a.Type = "fight"
 	case "help":
-		action.Type = "help"
+		a.Type = "help"
 	default:
-		action.Type = "vote"
+		for k, _ := range VoteMap {
+			if k == clb.Data {
+				a.Type = "vote"
+			}
+		}
 	}
 
-	// log.Printf("%v   %v", clb.Message.Chat.ID, clb.From.UserName)
-
-	if action.Type != "" {
-		chat := getChat(clb.Message.Chat.ID)
-		chat.SendToListeners(&action)
+	if a.Type == "fight" || a.Type == "help" {
+		clbCfg := tgbotapi.CallbackConfig{CallbackQueryID: clb.ID}
+		Bot.AnswerCallbackQuery(clbCfg)
 	}
+
+	if a.Type == "" {
+		return
+	}
+
+	a.From = c.GetUser(clb.From)
+	a.Message = &Message{
+		ID:   clb.Message.MessageID,
+		From: c.GetUser(clb.Message.From),
+		Text: clb.Message.Text,
+	}
+	a.Callback = &Callback{
+		ID:   clb.ID,
+		Data: clb.Data,
+	}
+	if reply := clb.Message.ReplyToMessage; reply != nil {
+		a.Message.ReplyToMsg = &Message{
+			ID:   reply.MessageID,
+			From: c.GetUser(reply.From),
+		}
+	}
+
+	log.Printf("[%s] Callback received: %s", clb.From.UserName, clb.ID)
+	return
+
+}
+
+func (msg TGMessage) GetChatID() int64 {
+	return msg.Chat.ID
+}
+
+func (clb TGCallback) GetChatID() int64 {
+	return clb.Message.Chat.ID
+}
+
+func handleRequest(r Actioner) {
+	c := getChat(r.GetChatID())
+	a := &Action{}
+	r.GetAction(a, c)
+	if a.Type == "" {
+		return
+	}
+	c.SendToListeners(a)
 }
 
 var (
@@ -202,11 +169,17 @@ func main() {
 	}
 
 	for update := range updates {
+
+		var a Actioner
+
 		if msg := update.Message; msg != nil {
-			go handleMessage(msg)
+			a = Actioner(TGMessage(*msg))
 		}
 		if clb := update.CallbackQuery; clb != nil {
-			go handleCallback(clb)
+			a = Actioner(TGCallback(*clb))
+		}
+		if a != nil {
+			go handleRequest(a)
 		}
 	}
 }

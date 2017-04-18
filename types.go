@@ -9,7 +9,7 @@ import (
 )
 
 func (ul *UserList) AddUser(u *User) {
-	(*ul)[u.Id] = u
+	(*ul)[u.ID] = u
 	return
 }
 
@@ -55,7 +55,7 @@ func (chat *Chat) Delete() {
 	for _, c := range chat.Listeners {
 		close(c)
 	}
-	delete(Chats, chat.Id)
+	delete(Chats, chat.ID)
 	return
 }
 
@@ -68,7 +68,7 @@ func (chat *Chat) GetUser(userRaw *tgbotapi.User) *User {
 	user, exists := chat.Users[uid]
 	if !exists {
 		user = &User{
-			Id:        uid,
+			ID:        uid,
 			Firstname: userRaw.FirstName,
 			Lastname:  userRaw.LastName,
 			Username:  userRaw.UserName,
@@ -116,23 +116,43 @@ type VotePair struct {
 type UserList map[int]*User
 
 type User struct {
-	Id        int
+	ID        int
 	Firstname string
 	Lastname  string
 	Username  string
 	Posted    bool
 }
 
+type TGMessage tgbotapi.Message
+type TGCallback tgbotapi.CallbackQuery
+
+type Actioner interface {
+	GetAction(a *Action, c *Chat)
+	GetChatID() int64
+}
+
 type Action struct {
-	Type    string
-	Clb     *tgbotapi.CallbackQuery
-	Msg     *tgbotapi.Message
-	ClbData string
+	Type     string
+	From     *User
+	Message  *Message
+	Callback *Callback
+}
+
+type Message struct {
+	ID         int
+	From       *User
+	ReplyToMsg *Message
+	Text       string
+}
+
+type Callback struct {
+	ID   string
+	Data string
 }
 
 type Chat struct {
 	sync.Mutex
-	Id                int64
+	ID                int64
 	Users             UserList
 	Queue             UserList
 	Brawl             UserList

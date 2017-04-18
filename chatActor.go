@@ -12,16 +12,16 @@ const (
 	CHAT_TIMEOUT       = 100 * time.Second
 	RECENT_TEXT_MEMORY = 3
 	MAX_BRAWL_USERS    = 4
-	MIN_BRAWL_USERS    = 2
+	MIN_BRAWL_USERS    = 1
 	COEFF_BRAWL_USERS  = 0.2
 )
 
 func chatActor(chat *Chat, c chan *Action) {
 
-	defer log.Printf("[server] Exiting chatActor goroutine for chat %v", chat.Id)
+	defer log.Printf("[server] Exiting chatActor goroutine for chat %v", chat.ID)
 	defer chat.Delete()
 
-	log.Printf("[server] Starting chatActor goroutine for chat %v", chat.Id)
+	log.Printf("[server] Starting chatActor goroutine for chat %v", chat.ID)
 
 	timer := time.NewTimer(CHAT_TIMEOUT)
 
@@ -29,7 +29,7 @@ func chatActor(chat *Chat, c chan *Action) {
 		select {
 		case action := <-c:
 
-			usersCount, _ := Bot.GetChatMembersCount(tgbotapi.ChatConfig{chat.Id, ""})
+			usersCount, _ := Bot.GetChatMembersCount(tgbotapi.ChatConfig{chat.ID, ""})
 			chat.MaxBrawlUserCount = MaxInt(
 				MIN_BRAWL_USERS,
 				MinInt(
@@ -55,26 +55,19 @@ func chatActor(chat *Chat, c chan *Action) {
 
 func mapActionChat(action *Action, chat *Chat) map[string]func() {
 
-	var user *User
-	if action.Msg != nil {
-		user = chat.GetUser(action.Msg.From)
-	} else if action.Clb != nil {
-		user = chat.GetUser(action.Clb.From)
-	} else {
-		return nil
-	}
-	uid := user.Id
+	user := action.From
+	uID := user.ID
 
 	var (
 		start = func() {
-			Bot.Send(GetTxtMsg(chat.Id, fmt.Sprintf("Hello, I am 'My Face When...'-bot.")))
+			Bot.Send(GetTxtMsg(chat.ID, fmt.Sprintf("Hello, I am 'My Face When...'-bot.")))
 			time.Sleep(DELAY_TEXT)
-			Bot.Send(GetTxtMsg(chat.Id, fmt.Sprintf("I'm dying to play a game with you")))
+			Bot.Send(GetTxtMsg(chat.ID, fmt.Sprintf("I'm dying to play a game with you")))
 			time.Sleep(DELAY_TEXT)
-			Bot.Send(GetTxtMsg(chat.Id, "_[AGITATED BEEP]_"))
+			Bot.Send(GetTxtMsg(chat.ID, "_[AGITATED BEEP]_"))
 			time.Sleep(DELAY_TEXT)
 
-			msg := GetTxtMsg(chat.Id, "Just type /fight or choose one of the options below:")
+			msg := GetTxtMsg(chat.ID, "Just type /fight or choose one of the options below:")
 
 			kb := tgbotapi.NewInlineKeyboardMarkup(
 				tgbotapi.NewInlineKeyboardRow(
@@ -90,9 +83,9 @@ func mapActionChat(action *Action, chat *Chat) map[string]func() {
 		}
 
 		help = func() {
-			Bot.Send(GetTxtMsg(chat.Id, fmt.Sprintf("Heeelp! I need somebooody...")))
+			Bot.Send(GetTxtMsg(chat.ID, fmt.Sprintf("Heeelp! I need somebooody...")))
 			time.Sleep(DELAY_TEXT)
-			Bot.Send(GetTxtMsg(chat.Id, fmt.Sprintf("Heeelp! Not just anybooody...")))
+			Bot.Send(GetTxtMsg(chat.ID, fmt.Sprintf("Heeelp! Not just anybooody...")))
 		}
 
 		debug = func() {
@@ -106,9 +99,9 @@ func mapActionChat(action *Action, chat *Chat) map[string]func() {
 		}
 
 		quit = func() {
-			_, exists := chat.Queue[uid]
+			_, exists := chat.Queue[uID]
 			if exists {
-				delete(chat.Queue, uid)
+				delete(chat.Queue, uID)
 				d := chat.MaxBrawlUserCount - len(chat.Queue)
 				log.Printf("[bot] %v more fighter(s) required", d)
 			}
@@ -118,22 +111,22 @@ func mapActionChat(action *Action, chat *Chat) map[string]func() {
 
 			if len(chat.Brawl) == 0 {
 
-				_, exists := chat.Queue[uid]
+				_, exists := chat.Queue[uID]
 				if !exists {
 					d := chat.MaxBrawlUserCount - len(chat.Queue)
 					chat.Queue.AddUser(user)
 					if d <= 1 {
-						Bot.Send(GetTxtMsg(chat.Id, fmt.Sprintf("All right! We've got ourselves a party, aren't we?")))
+						Bot.Send(GetTxtMsg(chat.ID, fmt.Sprintf("All right! We've got ourselves a party, aren't we?")))
 						time.Sleep(DELAY_TEXT)
-						Bot.Send(GetTxtMsg(chat.Id, "_[EXCITED BEEP]_"))
+						Bot.Send(GetTxtMsg(chat.ID, "_[EXCITED BEEP]_"))
 						time.Sleep(DELAY_TEXT)
 						log.Printf("[bot] Party is ready")
 						if len(chat.Brawl) == 0 {
 							n := 0
-							for userInListId, userInList := range chat.Queue {
+							for userInListID, userInList := range chat.Queue {
 								n++
 								chat.Brawl.AddUser(userInList)
-								delete(chat.Queue, userInListId)
+								delete(chat.Queue, userInListID)
 								if n >= chat.MaxBrawlUserCount {
 									break
 								}
@@ -146,9 +139,9 @@ func mapActionChat(action *Action, chat *Chat) map[string]func() {
 						}
 					} else {
 						if d-1 == 1 {
-							Bot.Send(GetTxtMsg(chat.Id, fmt.Sprintf("We need another volunteer")))
+							Bot.Send(GetTxtMsg(chat.ID, fmt.Sprintf("We need another volunteer")))
 						} else {
-							Bot.Send(GetTxtMsg(chat.Id, fmt.Sprintf("We need another volunteer. %v, in fact", d-1)))
+							Bot.Send(GetTxtMsg(chat.ID, fmt.Sprintf("We need another volunteer. %v, in fact", d-1)))
 						}
 						time.Sleep(DELAY_TEXT)
 						log.Printf("[bot] %v more fighter(s) required", d-1)

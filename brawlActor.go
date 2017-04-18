@@ -26,7 +26,7 @@ var (
 		},
 		"b": MapClbDataToVote{
 			Effect: 1,
-			Emoji:  "\U0001F60D",
+			Emoji:  "\U0001F525",
 		},
 		"c": MapClbDataToVote{
 			Effect: 0,
@@ -61,19 +61,19 @@ func Shuffle(inS []string) []string {
 	return s
 }
 
-func GetTxtMsg(cid int64, text string) tgbotapi.MessageConfig {
+func GetTxtMsg(cID int64, text string) tgbotapi.MessageConfig {
 	var msg tgbotapi.MessageConfig
 	if text != "" {
-		msg = tgbotapi.NewMessage(cid, text)
+		msg = tgbotapi.NewMessage(cID, text)
 		msg.ParseMode = tgbotapi.ModeMarkdown
 	}
 	return msg
 }
 
-func GetVoteMsg(msg tgbotapi.MessageConfig, mid int) tgbotapi.MessageConfig {
+func GetVoteMsg(msg tgbotapi.MessageConfig, mID int) tgbotapi.MessageConfig {
 	kb := GetUpdVoteMarkup(make(map[string]int))
 	msg.ReplyMarkup = kb
-	msg.ReplyToMessageID = mid
+	msg.ReplyToMessageID = mID
 	return msg
 }
 
@@ -101,7 +101,7 @@ func GetUpdVoteMarkup(voteResults map[string]int) tgbotapi.InlineKeyboardMarkup 
 func getVoteResults(votee *User, voteStats *VoteStats) map[string]int {
 	voteResults := make(map[string]int)
 	for pairInList, voteInList := range *voteStats {
-		if pairInList.Votee.Id == votee.Id {
+		if pairInList.Votee.ID == votee.ID {
 			for key := range VoteMap {
 				voteResults[key] = voteResults[key] + (*voteInList)[key]
 			}
@@ -110,7 +110,7 @@ func getVoteResults(votee *User, voteStats *VoteStats) map[string]int {
 	return voteResults
 }
 
-func ConfidenceRating(score, maxScore int) float64 {
+func ConfIDenceRating(score, maxScore int) float64 {
 
 	if maxScore == 0 {
 		return 0
@@ -144,8 +144,8 @@ func MaxInt(n1, n2 int) int {
 }
 
 func brawlActor(chat *Chat, c chan *Action) {
-	defer log.Printf("[server] Exiting brawlActor goroutine for chat %v", chat.Id)
-	log.Printf("[server] Starting brawlActor goroutine for chat %v", chat.Id)
+	defer log.Printf("[server] Exiting brawlActor goroutine for chat %v", chat.ID)
+	log.Printf("[server] Starting brawlActor goroutine for chat %v", chat.ID)
 
 	var (
 		text  string
@@ -184,12 +184,12 @@ func brawlActor(chat *Chat, c chan *Action) {
 		n++
 		wlcmTxt += fmt.Sprintf("%s %s\n", e, u.SprintName())
 	}
-	Bot.Send(GetTxtMsg(chat.Id, wlcmTxt))
+	Bot.Send(GetTxtMsg(chat.ID, wlcmTxt))
 
 	time.Sleep(DELAY_TEXT)
-	Bot.Send(GetTxtMsg(chat.Id, fmt.Sprintf("My face when *%s*", text)))
+	Bot.Send(GetTxtMsg(chat.ID, fmt.Sprintf("My face when *%s*", text)))
 	time.Sleep(DELAY_TEXT)
-	Bot.Send(GetTxtMsg(chat.Id, fmt.Sprintf("Feel free to post your photos now")))
+	Bot.Send(GetTxtMsg(chat.ID, fmt.Sprintf("Feel free to post your photos now")))
 
 	timer1 := time.NewTimer(DELAY_PHOTO)
 	timer2 := time.NewTimer(100)
@@ -205,12 +205,12 @@ func brawlActor(chat *Chat, c chan *Action) {
 				if action.Type == "photo" {
 					for _, user := range chat.Brawl {
 
-						if user.Id == action.Msg.From.ID && !user.Posted {
+						if user.ID == action.From.ID && !user.Posted {
 
 							user.Posted = true
 							Bot.Send(GetVoteMsg(
-								GetTxtMsg(chat.Id, fmt.Sprintf("Please vote")),
-								action.Msg.MessageID),
+								GetTxtMsg(chat.ID, fmt.Sprintf("Please vote")),
+								action.Message.ID),
 							)
 
 							timer1.Reset(DELAY_VOTES)
@@ -221,8 +221,8 @@ func brawlActor(chat *Chat, c chan *Action) {
 
 				if action.Type == "vote" {
 
-					voter := chat.GetUser(action.Clb.From)
-					votee := chat.GetUser(action.Clb.Message.ReplyToMessage.From)
+					voter := action.From
+					votee := action.Message.ReplyToMsg.From
 					var pair = VotePair{voter, votee}
 
 					vote, exists := voteStats[pair]
@@ -231,21 +231,20 @@ func brawlActor(chat *Chat, c chan *Action) {
 						voteStats[pair] = vote
 					}
 
-					voteStats[pair] = &Vote{action.ClbData: 1}
-					clbTxt := fmt.Sprintf("You %s-ed %s", VoteMap[action.Clb.Data].Emoji, votee.SprintName())
+					voteStats[pair] = &Vote{action.Callback.Data: 1}
+					clbTxt := fmt.Sprintf("You %s-ed %s", VoteMap[action.Callback.Data].Emoji, votee.SprintName())
 
 					voteResults := getVoteResults(votee, &voteStats)
 
 					editMsgCfg := tgbotapi.NewEditMessageReplyMarkup(
-						chat.Id,
-						action.Clb.Message.MessageID,
+						chat.ID,
+						action.Message.ID,
 						GetUpdVoteMarkup(voteResults))
 					Bot.Send(editMsgCfg)
 
 					clbCfg := tgbotapi.CallbackConfig{
-						CallbackQueryID: action.Clb.ID,
+						CallbackQueryID: action.Callback.ID,
 						Text:            clbTxt,
-						ShowAlert:       false,
 					}
 					Bot.AnswerCallbackQuery(clbCfg)
 				}
@@ -254,7 +253,7 @@ func brawlActor(chat *Chat, c chan *Action) {
 			}
 		case <-timer1.C:
 			log.Printf("[bot] First brawl timeout")
-			Bot.Send(GetTxtMsg(chat.Id, fmt.Sprintf("Hurry up! You have %v seconds left", DELAY_LAST_VOTES_SEC)))
+			Bot.Send(GetTxtMsg(chat.ID, fmt.Sprintf("Hurry up! You have %v seconds left", DELAY_LAST_VOTES_SEC)))
 			timer2.Reset(DELAY_LAST_VOTES)
 		case <-timer2.C:
 			log.Printf("[bot] Final brawl timeout")
@@ -262,7 +261,7 @@ func brawlActor(chat *Chat, c chan *Action) {
 		}
 	}
 
-	Bot.Send(GetTxtMsg(chat.Id, "Time is up!"))
+	Bot.Send(GetTxtMsg(chat.ID, "Time is up!"))
 	time.Sleep(DELAY_TEXT)
 
 	voteSummary := make(map[*User]*VoteResult)
@@ -284,7 +283,7 @@ func brawlActor(chat *Chat, c chan *Action) {
 	}
 	winner.confRating = -1
 	for user, resultInList := range voteSummary {
-		confRating := ConfidenceRating(resultInList.Score, resultInList.N)
+		confRating := ConfIDenceRating(resultInList.Score, resultInList.N)
 		if confRating > winner.confRating {
 			winner.user = user
 			winner.score = resultInList.Score
@@ -294,31 +293,31 @@ func brawlActor(chat *Chat, c chan *Action) {
 	}
 
 	if winner.user == nil {
-		Bot.Send(GetTxtMsg(chat.Id, "OK, so nobody chose to participate this time. Oh well..."))
+		Bot.Send(GetTxtMsg(chat.ID, "OK, so nobody chose to participate this time. Oh well..."))
 		time.Sleep(DELAY_TEXT)
-		Bot.Send(GetTxtMsg(chat.Id, "_[SAD BEEP]_"))
+		Bot.Send(GetTxtMsg(chat.ID, "_[SAD BEEP]_"))
 	} else {
 		if winner.score < winner.n-winner.score {
 			if len(chat.Brawl) == 2 {
-				Bot.Send(GetTxtMsg(chat.Id, "Well... This was a tough one. Both of you guys were quite shitty"))
+				Bot.Send(GetTxtMsg(chat.ID, "Well... This was a tough one. Both of you guys were quite shitty"))
 			} else {
-				Bot.Send(GetTxtMsg(chat.Id, "Well... This was a tough one. All of you guys were quite shitty"))
+				Bot.Send(GetTxtMsg(chat.ID, "Well... This was a tough one. All of you guys were quite shitty"))
 			}
 			time.Sleep(DELAY_TEXT)
-			Bot.Send(GetTxtMsg(chat.Id, "Please welcome a winner:"))
+			Bot.Send(GetTxtMsg(chat.ID, "Please welcome a winner:"))
 			time.Sleep(DELAY_TEXT)
-			Bot.Send(GetTxtMsg(chat.Id, fmt.Sprintf("%v", winner.user.SprintName())))
+			Bot.Send(GetTxtMsg(chat.ID, fmt.Sprintf("%v", winner.user.SprintName())))
 			time.Sleep(DELAY_TEXT)
-			Bot.Send(GetTxtMsg(chat.Id, "_[SARCASATIC BEEP]_"))
+			Bot.Send(GetTxtMsg(chat.ID, "_[SARCASATIC BEEP]_"))
 		} else {
 			time.Sleep(DELAY_TEXT)
-			Bot.Send(GetTxtMsg(chat.Id, "All right! That was a fair competition"))
+			Bot.Send(GetTxtMsg(chat.ID, "All right! That was a fair competition"))
 			time.Sleep(DELAY_TEXT)
-			Bot.Send(GetTxtMsg(chat.Id, "I am pleased to announce the winner. Please welcome:"))
+			Bot.Send(GetTxtMsg(chat.ID, "I am pleased to announce the winner. Please welcome:"))
 			time.Sleep(DELAY_TEXT)
-			Bot.Send(GetTxtMsg(chat.Id, fmt.Sprintf("%v", winner.user.SprintName())))
+			Bot.Send(GetTxtMsg(chat.ID, fmt.Sprintf("%v", winner.user.SprintName())))
 			time.Sleep(DELAY_TEXT)
-			Bot.Send(GetTxtMsg(chat.Id, "_[TRIUMPHANT BEEP]_"))
+			Bot.Send(GetTxtMsg(chat.ID, "_[TRIUMPHANT BEEP]_"))
 		}
 
 		log.Printf("[bot] Winner: %+v", winner)
