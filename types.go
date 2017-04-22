@@ -38,16 +38,6 @@ func (chat *Chat) DeleteListener(c chan *Action) {
 	}
 }
 
-func (chat *Chat) SendToListeners(a *Action) {
-	chat.Lock()
-	defer chat.Unlock()
-
-	for _, c := range chat.Listeners {
-		c <- a
-	}
-	log.Printf("[server] Sent to %v listeners: %+v", len(chat.Listeners), a)
-}
-
 func (chat *Chat) Delete() {
 	chat.Lock()
 	defer chat.Unlock()
@@ -57,6 +47,16 @@ func (chat *Chat) Delete() {
 	}
 	delete(Chats, chat.ID)
 	return
+}
+
+func (chat *Chat) SendToListeners(a *Action) {
+	chat.Lock()
+	defer chat.Unlock()
+
+	for _, c := range chat.Listeners {
+		c <- a
+	}
+	log.Printf("[server] Sent to %v listeners: %+v", len(chat.Listeners), a)
 }
 
 func (chat *Chat) GetUser(userRaw *tgbotapi.User) *User {
@@ -133,8 +133,8 @@ type Action struct {
 type Message struct {
 	ID         int
 	From       *User
-	ReplyToMsg *Message
 	Text       string
+	ReplyToMsg *Message
 }
 
 type Callback struct {
@@ -149,6 +149,7 @@ type Chat struct {
 	Queue             UserList
 	Brawl             UserList
 	Listeners         []chan *Action
+	BrawlChan         chan *Action
 	RecentTexts       []string
 	MaxBrawlUserCount int
 }

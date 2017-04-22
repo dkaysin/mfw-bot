@@ -6,13 +6,38 @@ import (
 	"gopkg.in/telegram-bot-api.v4"
 )
 
-type TGMessage tgbotapi.Message
-type TGCallback tgbotapi.CallbackQuery
-
 type Actioner interface {
 	GetAction(a *Action, c *Chat)
 	GetChatID() int64
 }
+
+func GetChat(chatID int64) *Chat {
+	chat, exists := Chats[chatID]
+	if !exists {
+		chat = &Chat{
+			ID:    chatID,
+			Users: UserList{},
+			Queue: UserList{},
+			Brawl: UserList{},
+		}
+		Chats[chatID] = chat
+		go ChatActor(chat, chat.CreateListener())
+	}
+	return chat
+}
+
+func HandleRequest(r Actioner) {
+	c := GetChat(r.GetChatID())
+	a := &Action{}
+	r.GetAction(a, c)
+	if a.Type == "" {
+		return
+	}
+	c.SendToListeners(a)
+}
+
+type TGMessage tgbotapi.Message
+type TGCallback tgbotapi.CallbackQuery
 
 func (msg TGMessage) GetAction(a *Action, c *Chat) {
 

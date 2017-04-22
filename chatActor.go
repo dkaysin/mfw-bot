@@ -8,7 +8,7 @@ import (
 	"gopkg.in/telegram-bot-api.v4"
 )
 
-func chatActor(chat *Chat, c chan *Action) {
+func ChatActor(chat *Chat, c chan *Action) {
 
 	defer log.Printf("[server] Exiting chatActor goroutine for chat %v", chat.ID)
 	defer chat.Delete()
@@ -91,20 +91,30 @@ func mapActionChat(action *Action, chat *Chat) map[string]func() {
 		}
 
 		quit = func() {
-			_, exists := chat.Queue[uID]
-			if exists {
+			_, existsQ := chat.Queue[uID]
+			if existsQ {
 				delete(chat.Queue, uID)
 				d := chat.MaxBrawlUserCount - len(chat.Queue)
 				log.Printf("[bot] %v more fighter(s) required", d)
 			}
+
+			_, existsB := chat.Brawl[uID]
+			if existsB {
+				chat.Brawl[uID].Posted = false
+				if len(chat.Brawl) < MIN_BRAWL_USERS {
+					chat.DeleteListener(chat.BrawlChan)
+				}
+				delete(chat.Brawl, uID)
+			}
+
 		}
 
 		fight = func() {
 
 			if len(chat.Brawl) == 0 {
 
-				_, exists := chat.Queue[uID]
-				if !exists {
+				_, existsQ := chat.Queue[uID]
+				if !existsQ {
 					d := chat.MaxBrawlUserCount - len(chat.Queue)
 					chat.Queue.AddUser(user)
 					if d <= 1 {
@@ -123,9 +133,9 @@ func mapActionChat(action *Action, chat *Chat) map[string]func() {
 									break
 								}
 							}
-							c := chat.CreateListener()
-							go brawlActor(chat, c)
-							c <- action
+							chat.BrawlChan = chat.CreateListener()
+							go BrawlActor(chat, chat.BrawlChan)
+							chat.BrawlChan <- action
 						} else {
 							log.Printf("[bot] Wait for brawl to finish")
 						}

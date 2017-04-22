@@ -1,8 +1,15 @@
 package main
 
-import "time"
+import (
+	"os"
+	"time"
+)
 
 const (
+	MIN_PHOTO_SIZE   = 1000 // in pixels
+	WEBHOOK_URL      = "https://mfw-bot.herokuapp.com"
+	WEBHOOK_EXT_PORT = "443"
+
 	CHAT_TIMEOUT       = 100 * time.Second
 	RECENT_TEXT_MEMORY = 3
 	MAX_BRAWL_USERS    = 4
@@ -16,7 +23,13 @@ const (
 	DELAY_LAST_VOTES     = DELAY_LAST_VOTES_SEC * time.Second
 )
 
+func APIKey() string {
+	return os.Getenv("MFWBOT_API_KEY")
+}
+
 var (
+	WEBHOOK_INT_PORT = os.Getenv("PORT")
+
 	VoteMap = map[string]MapClbDataToVote{
 		"a": MapClbDataToVote{
 			Effect: 1,

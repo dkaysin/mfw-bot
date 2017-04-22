@@ -57,7 +57,7 @@ func GetUpdVoteMarkup(voteResults map[string]int) tgbotapi.InlineKeyboardMarkup 
 	return kb
 }
 
-func getVoteResults(votee *User, voteStats *VoteStats) map[string]int {
+func GetVoteResults(votee *User, voteStats *VoteStats) map[string]int {
 	voteResults := make(map[string]int)
 	for pairInList, voteInList := range *voteStats {
 		if pairInList.Votee.ID == votee.ID {
@@ -86,23 +86,7 @@ func ConfIDenceRating(score, maxScore int) float64 {
 	return (left - right) / under
 }
 
-func MinInt(n1, n2 int) int {
-	if n1 < n2 {
-		return n1
-	} else {
-		return n2
-	}
-}
-
-func MaxInt(n1, n2 int) int {
-	if n1 > n2 {
-		return n1
-	} else {
-		return n2
-	}
-}
-
-func brawlActor(chat *Chat, c chan *Action) {
+func BrawlActor(chat *Chat, c chan *Action) {
 	defer log.Printf("[server] Exiting brawlActor goroutine for chat %v", chat.ID)
 	log.Printf("[server] Starting brawlActor goroutine for chat %v", chat.ID)
 
@@ -193,7 +177,7 @@ func brawlActor(chat *Chat, c chan *Action) {
 					voteStats[pair] = &Vote{action.Callback.Data: 1}
 					clbTxt := fmt.Sprintf("You %s-ed %s", VoteMap[action.Callback.Data].Emoji, votee.SprintName())
 
-					voteResults := getVoteResults(votee, &voteStats)
+					voteResults := GetVoteResults(votee, &voteStats)
 
 					editMsgCfg := tgbotapi.NewEditMessageReplyMarkup(
 						chat.ID,

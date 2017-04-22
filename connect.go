@@ -28,16 +28,16 @@ func connectWebHook() <-chan tgbotapi.Update {
 
 	log.Printf("[server] Authorized on account %s", Bot.Self.UserName)
 
-	log.Printf("[server] Setting up a webhook on port %v->%s", whExtPort, os.Getenv("PORT"))
+	log.Printf("[server] Setting up a webhook on port %v->%s", WEBHOOK_EXT_PORT, os.Getenv("PORT"))
 
-	_, err := Bot.SetWebhook(tgbotapi.NewWebhook(whURL + ":" + whExtPort + "/" + Bot.Token))
+	_, err := Bot.SetWebhook(tgbotapi.NewWebhook(WEBHOOK_URL + ":" + WEBHOOK_EXT_PORT + "/" + Bot.Token))
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	updatesC = Bot.ListenForWebhook("/" + Bot.Token)
 
-	go http.ListenAndServe(":"+whIntPort, nil)
+	go http.ListenAndServe(":"+WEBHOOK_INT_PORT, nil)
 
 	return updatesC
 }
