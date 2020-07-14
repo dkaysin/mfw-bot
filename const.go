@@ -12,8 +12,8 @@ const (
 
 	CHAT_TIMEOUT       = 100 * time.Second
 	RECENT_TEXT_MEMORY = 3
-	MAX_BRAWL_USERS    = 4
-	MIN_BRAWL_USERS    = 1
+	MAX_BRAWL_USERS    = 6
+	MIN_BRAWL_USERS    = 2
 	COEFF_BRAWL_USERS  = 0.2
 
 	DELAY_TEXT           = 1 * time.Second
