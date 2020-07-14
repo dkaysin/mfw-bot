@@ -132,7 +132,7 @@ func BrawlActor(chat *Chat, c chan *Action) {
 	time.Sleep(DELAY_TEXT)
 	Bot.Send(GetTxtMsg(chat.ID, fmt.Sprintf("My face when *%s*", text)))
 	time.Sleep(DELAY_TEXT)
-	Bot.Send(GetTxtMsg(chat.ID, fmt.Sprintf("Feel free to post your photos now")))
+	Bot.Send(GetTxtMsg(chat.ID, fmt.Sprintf("Feel free to post your photos now. You have %v seconds!", DELAY_VOTES_SEC)))
 
 	timer1 := time.NewTimer(DELAY_PHOTO)
 	timer2 := time.NewTimer(100)

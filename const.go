@@ -18,7 +18,8 @@ const (
 
 	DELAY_TEXT           = 1 * time.Second
 	DELAY_PHOTO          = 60 * time.Second
-	DELAY_VOTES          = 30 * time.Second
+	DELAY_VOTES_SEC      = 30 // in seconds
+	DELAY_VOTES          = DELAY_VOTES_SEC * time.Second
 	DELAY_LAST_VOTES_SEC = 15 // in seconds
 	DELAY_LAST_VOTES     = DELAY_LAST_VOTES_SEC * time.Second
 )
