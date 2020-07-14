@@ -64,7 +64,7 @@ func mapActionChat(action *Action, chat *Chat) map[string]func() {
 			kb := tgbotapi.NewInlineKeyboardMarkup(
 				tgbotapi.NewInlineKeyboardRow(
 					tgbotapi.NewInlineKeyboardButtonData(
-						"Enter the brawl",
+						"Start the fight!",
 						"fight"),
 					tgbotapi.NewInlineKeyboardButtonData(
 						"Help",
@@ -75,9 +75,9 @@ func mapActionChat(action *Action, chat *Chat) map[string]func() {
 		}
 
 		help = func() {
-			Bot.Send(GetTxtMsg(chat.ID, fmt.Sprintf("Heeelp! I need somebooody...")))
+			Bot.Send(GetTxtMsg(chat.ID, fmt.Sprintf("Unfortunately, the help has not been implemented yet")))
 			time.Sleep(DELAY_TEXT)
-			Bot.Send(GetTxtMsg(chat.ID, fmt.Sprintf("Heeelp! Not just anybooody...")))
+			Bot.Send(GetTxtMsg(chat.ID, fmt.Sprintf("So... Bad luck!")))
 		}
 
 		debug = func() {

@@ -242,12 +242,12 @@ func BrawlActor(chat *Chat, c chan *Action) {
 	} else {
 		if winner.score < winner.n-winner.score {
 			if len(chat.Brawl) == 2 {
-				Bot.Send(GetTxtMsg(chat.ID, "Well... This was a tough one. Both of you guys were quite shitty"))
+				Bot.Send(GetTxtMsg(chat.ID, "Well... That was a tough one. Both of you guys could have done better!"))
 			} else {
-				Bot.Send(GetTxtMsg(chat.ID, "Well... This was a tough one. All of you guys were quite shitty"))
+				Bot.Send(GetTxtMsg(chat.ID, "Well... That was a tough one. You guys could have done better!"))
 			}
 			time.Sleep(DELAY_TEXT)
-			Bot.Send(GetTxtMsg(chat.ID, "Please welcome a winner:"))
+			Bot.Send(GetTxtMsg(chat.ID, "Please give it up for the winner:"))
 			time.Sleep(DELAY_TEXT)
 			Bot.Send(GetTxtMsg(chat.ID, fmt.Sprintf("%v", winner.user.SprintName())))
 			time.Sleep(DELAY_TEXT)
